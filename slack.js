@@ -37,12 +37,14 @@ export const convertUserIdsToNames = async (messages) => {
 export const readChannelMessages = async ({
   channelId,
   fromTimeStamp,
+  toTimeStamp,
   limit,
 }) => {
   try {
     const { messages } = await web.conversations.history({
       channel: channelId,
       oldest: fromTimeStamp,
+      latest: toTimeStamp,
       limit,
     });
 
@@ -52,10 +54,10 @@ export const readChannelMessages = async ({
   }
 };
 
-export const sendMessage = async (channelId, message) => {
+export const sendMessage = async ({ userId, channelId, message }) => {
   try {
-    const result = await web.chat.postMessage({
-      channel: channelId,
+    await web.chat.postMessage({
+      channel: channelId ?? userId,
       text: message,
     });
   } catch (error) {

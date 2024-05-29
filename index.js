@@ -12,16 +12,18 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/', async (req, res) => {
   // return res.send(req.body.challenge);
-  const messages = await readChannelMessages({
-    channelId: 'C073JJJSWP7',
-    fromTimeStamp: dateToTimestamp(2024, 1, 1),
-    limit: 10000,
+
+  await sendMessage({
+    userId: 'C073JJJSWP7',
+    message: 'hi team, hope you are doing fine!',
   });
 
-  res.send(messages);
-  // const messages = await readChannelMessages('C073JJJSWP7');
-  // const answers = await getAnswers(messages);
-  // await sendMessage('C074S83RAF7', answers);
+  // const messages = await readChannelMessages({
+  //   channelId: 'C073JJJSWP7',
+  //   fromTimeStamp: dateToTimestamp(2024, 1, 1),
+  //   limit: 10000,
+  // });
+  res.send('done');
 });
 
 app.listen(port, () => {
