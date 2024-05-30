@@ -13,7 +13,7 @@ const ASSISTANT = 'assistant';
 const USER = 'user';
 
 const trainingChat = {
-  /* by user and traning name "sendMail": 
+  /* by user_traning name "sendMail": 
     [
       { role: 'user', content: 'content' },
       { role: 'assistant', content: 'content' },
@@ -81,12 +81,12 @@ export const orchest = async (body) => {
     }
 
     const key = trainingKey[user];
-    const history = trainingChat[user]?.[key];
+    const history = trainingChat[user + '_' + key];
 
     if (trainingFlag[user]) {
       return askChatgpt(text, history).then((answer) => {
-        trainingChat[user][key] = [
-          ...trainingChat[user]?.[key],
+        trainingChat[user + '_' + key] = [
+          ...(trainingChat[user + '_' + key] || []),
           { role: USER, content: text },
           { role: ASSISTANT, content: answer },
         ];
