@@ -15,20 +15,15 @@ export const orchest = async (body) => {
 
   console.log({ type, user, text, channel });
 
-  if (type == 'event_callback' && user !== TEAMFLO_ID) {
-    askChatgpt(text).then((answer) => {
-      console.log({ answer });
-      sendMessage({ channelId: channel, message: answer });
-    });
-    return 'one second, please';
-  }
-
-  if (type == 'app_mention') {
-    const { text, channel } = event;
+  //THIS IS WHEN I MENTION @TEAMFLO FROM ANY CHANNEL WHERE TEAMFLOW IS ADDED PREVIOUSLY
+  //DIRECT TALK TO THE BOT
+  if (
+    (type == 'app_mention' || type == 'event_callback') &&
+    user !== TEAMFLO_ID
+  ) {
     askChatgpt(text).then((answer) => {
       sendMessage({ channelId: channel, message: answer });
     });
-    return 'one second, please';
   }
 };
 
