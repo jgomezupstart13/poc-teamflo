@@ -9,6 +9,25 @@ const web = new WebClient(token);
 
 const userCache = {};
 
+const trainingChat = {
+  /* by user and traning name "sendMail": 
+    [
+      { role: 'user', content: 'content' },
+      { role: 'assistant', content: 'content' },
+      { role: 'user', content: 'content' },
+
+    ]
+  */
+};
+
+const trainingFlag = {
+  //by user, true or false
+};
+
+const waitingForTrainingKey = {
+  //by user
+};
+
 export const orchest = async (body) => {
   console.log({ body });
   const { command, user_id, type, event = {} } = body;
@@ -17,8 +36,17 @@ export const orchest = async (body) => {
 
   console.log({ type, user, text, channel });
 
-  if (command) {
-    sendMessage({ userId: user_id, message: 'testing' });
+  if (command == '/train-teamflo-start') {
+    trainingFlag[user_id] = true;
+    waitingForTrainingKey[user_id] = true;
+    return sendMessage({
+      userId: user_id,
+      message: `
+      OK, let's start traning, whenever you feel I understood your intend, please trigger the command /train-teamflo-stop
+      \n
+      give me a key name for this training, please ex.: sendmail, readchannel, etc.
+      `,
+    });
   }
 
   //THIS IS WHEN I MENTION @TEAMFLO FROM ANY CHANNEL WHERE TEAMFLOW IS ADDED PREVIOUSLY
@@ -27,7 +55,18 @@ export const orchest = async (body) => {
     (type == 'app_mention' || type == 'event_callback') &&
     user !== TEAMFLO_ID
   ) {
-    askChatgpt(text).then((answer) => {
+    if (waitingForTrainingKey[user] && !/^[a-zA-Z]+$/.test(text)) {
+      return sendMessage({
+        channelId: channel,
+        message:
+          'Before continue, please provide a training key, ex. sendmail, readchannel, etc.',
+      });
+    }
+    return askChatgpt(text).then((answer) => {
+      // if (user_id && trainingFlag[user_id]) {
+      //   trainingFlag[user_id];
+      // }
+
       sendMessage({ channelId: channel, message: answer });
     });
   }

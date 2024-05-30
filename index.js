@@ -11,7 +11,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.post('/', async (req, res) => {
   // return res.send(req.body.challenge);
   orchest(req.body);
-  res.status(200).send('ack');
+  res.status(200).send();
 });
 
 app.listen(port, () => {
