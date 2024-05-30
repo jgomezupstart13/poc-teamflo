@@ -81,15 +81,16 @@ export const orchest = async (body) => {
     }
 
     const key = trainingKey[user];
-    const history = trainingChat[user][key];
+    const history = trainingChat[user]?.[key];
 
     if (trainingFlag[user]) {
       return askChatgpt(text, history).then((answer) => {
         trainingChat[user][key] = [
-          ...trainingChat[user][key],
+          ...trainingChat[user]?.[key],
           { role: USER, content: text },
           { role: ASSISTANT, content: answer },
         ];
+        sendMessage({ channelId: channel, message: answer });
       });
     }
 

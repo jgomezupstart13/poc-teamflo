@@ -21,10 +21,10 @@ export const getAnswers = async (messages) => {
   return data;
 };
 
-export const askChatgpt = async (question) => {
+export const askChatgpt = async (question, history = []) => {
   const url =
     'https://qy56ruzxiokam4337xsmybu22m0zofit.lambda-url.us-east-1.on.aws/';
-  const request = [{ role: 'user', content: `${question}` }];
+  const request = [...history, { role: 'user', content: `${question}` }];
 
   const {
     data: { content },
