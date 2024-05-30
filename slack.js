@@ -9,6 +9,9 @@ const web = new WebClient(token);
 
 const userCache = {};
 
+const ASSISTANT = 'assistant';
+const USER = 'user';
+
 const trainingChat = {
   /* by user and traning name "sendMail": 
     [
@@ -22,6 +25,10 @@ const trainingChat = {
 
 const trainingFlag = {
   //by user, true or false
+};
+
+const trainingKey = {
+  //by user
 };
 
 const waitingForTrainingKey = {
@@ -62,11 +69,31 @@ export const orchest = async (body) => {
           'Before continue, please provide a training key, ex. sendmail, readchannel, etc.',
       });
     }
-    return askChatgpt(text).then((answer) => {
-      // if (user_id && trainingFlag[user_id]) {
-      //   trainingFlag[user_id];
-      // }
 
+    if (waitingForTrainingKey[user] && /^[a-zA-Z]+$/.test(text)) {
+      waitingForTrainingKey[user] = false;
+      trainingKey[user] = text;
+
+      return sendMessage({
+        channelId: channel,
+        message: `great!, the training key is ${text}\nLet's begin, ex. When I tell ... you respond...`,
+      });
+    }
+
+    const key = trainingKey[user];
+    const history = trainingChat[user][key];
+
+    if (trainingFlag[user]) {
+      return askChatgpt(text, history).then((answer) => {
+        trainingChat[user][key] = [
+          ...trainingChat[user][key],
+          { role: USER, content: text },
+          { role: ASSISTANT, content: answer },
+        ];
+      });
+    }
+
+    return askChatgpt(text, history).then((answer) => {
       sendMessage({ channelId: channel, message: answer });
     });
   }
