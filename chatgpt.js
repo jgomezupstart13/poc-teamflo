@@ -15,3 +15,15 @@ export const getAnswers = async (messages) => {
 
   return data;
 };
+
+export const askChatgpt = async (question) => {
+  const url =
+    'https://qy56ruzxiokam4337xsmybu22m0zofit.lambda-url.us-east-1.on.aws/';
+  const request = [{ role: 'user', content: `${question}` }];
+
+  const {
+    data: { content },
+  } = await axios.post(url, request);
+
+  return content;
+};
