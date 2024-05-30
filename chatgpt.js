@@ -1,4 +1,9 @@
 import axios from 'axios';
+
+const chatHistory = {
+  //by user "id" : [text, text]
+};
+
 export const getAnswers = async (messages) => {
   const url =
     'https://q4hghqv3kmmulov4intjbriwqa0hnbvi.lambda-url.us-east-1.on.aws/';
