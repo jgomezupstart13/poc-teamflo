@@ -10,10 +10,16 @@ const web = new WebClient(token);
 const userCache = {};
 
 export const orchest = async (body) => {
-  const { type, event } = body;
+  console.log({ body });
+  const { command, user_id, type, event = {} } = body;
+
   const { user, text, channel } = event;
 
   console.log({ type, user, text, channel });
+
+  if (command) {
+    sendMessage({ userId: user_id, message: 'testing' });
+  }
 
   //THIS IS WHEN I MENTION @TEAMFLO FROM ANY CHANNEL WHERE TEAMFLOW IS ADDED PREVIOUSLY
   //DIRECT TALK TO THE BOT
