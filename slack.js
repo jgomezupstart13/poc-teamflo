@@ -13,7 +13,7 @@ const ASSISTANT = 'assistant';
 const USER = 'user';
 
 const trainingChat = {
-  /* by user_traning name "sendMail": 
+  /* by user
     [
       { role: 'user', content: 'content' },
       { role: 'assistant', content: 'content' },
@@ -27,14 +27,6 @@ const trainingFlag = {
   //by user, true or false
 };
 
-const trainingKey = {
-  //by user
-};
-
-const waitingForTrainingKey = {
-  //by user
-};
-
 export const orchest = async (body) => {
   console.log({ body });
   const { command, user_id, type, event = {} } = body;
@@ -43,16 +35,20 @@ export const orchest = async (body) => {
 
   console.log({ type, user, text, channel });
 
-  if (command == '/train-teamflo-start') {
-    trainingFlag[user_id] = true;
-    waitingForTrainingKey[user_id] = true;
+  if (command == '/train-teamflow-stop') {
+    trainingFlag[user_id] = false;
     return sendMessage({
       userId: user_id,
-      message: `
-      OK, let's start traning, whenever you feel I understood your intend, please trigger the command /train-teamflo-stop
-      \n
-      give me a key name for this training, please ex.: sendmail, readchannel, etc.
-      `,
+      message: 'Great! thanks for teaching me.',
+    });
+  }
+
+  if (command == '/train-teamflo-start') {
+    trainingFlag[user_id] = true;
+
+    return sendMessage({
+      userId: user_id,
+      message: `OK, let's start traning, whenever you feel I understood your intend, please trigger the command /train-teamflo-stop`,
     });
   }
 
@@ -62,31 +58,12 @@ export const orchest = async (body) => {
     (type == 'app_mention' || type == 'event_callback') &&
     user !== TEAMFLO_ID
   ) {
-    if (waitingForTrainingKey[user] && !/^[a-zA-Z]+$/.test(text)) {
-      return sendMessage({
-        channelId: channel,
-        message:
-          'Before continue, please provide a training key, ex. sendmail, readchannel, etc.',
-      });
-    }
-
-    if (waitingForTrainingKey[user] && /^[a-zA-Z]+$/.test(text)) {
-      waitingForTrainingKey[user] = false;
-      trainingKey[user] = text;
-
-      return sendMessage({
-        channelId: channel,
-        message: `great!, the training key is ${text}\nLet's begin, ex. When I tell ... you respond...`,
-      });
-    }
-
-    const key = trainingKey[user];
-    const history = trainingChat[user + '_' + key];
+    const history = trainingChat[user];
 
     if (trainingFlag[user]) {
       return askChatgpt(text, history).then((answer) => {
-        trainingChat[user + '_' + key] = [
-          ...(trainingChat[user + '_' + key] || []),
+        trainingChat[user] = [
+          ...(trainingChat[user] || []),
           { role: USER, content: text },
           { role: ASSISTANT, content: answer },
         ];
