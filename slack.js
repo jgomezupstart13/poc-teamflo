@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { WebClient } from '@slack/web-api';
 import { askChatgpt } from './chatgpt.js';
 import { TEAMFLO_ID } from './config.js';
+import { dateToTimestamp } from './utils.js';
 
 const token = process.env.SLACK_TOKEN;
 
@@ -35,10 +36,30 @@ export const orchest = async (body) => {
 
   console.log({ type, user, text, channel });
 
-  if (/^command/.test(text)) {
+  if (/^@command/.test(text)) {
+    if (/^@command:sendGreetingToChannel@to:.+$/.test(text)) {
+      //example:
+      //@command:sendGreetingToChannel@to:channel
+
+      const [to] = text
+        .split('@')
+        .slice(-1)
+        .map((e) => e.replace(/to:/, ''))
+        .map((e) => getChannelId(e));
+
+      const message = await askChatgpt(
+        'say something funny to my team, the channel is ' + getChannelName(to)
+      );
+
+      return sendMessage({
+        channelId: to,
+        message: message,
+      });
+    }
+
     return sendMessage({
       userId: user_id || user,
-      message: 'this is a command',
+      message: `command: ${text} not recognized, I suggest entering training mode with /train-teamflo-start to teach me how to structure the response correctly.`,
     });
   }
 
@@ -55,7 +76,7 @@ export const orchest = async (body) => {
 
     return sendMessage({
       userId: user_id,
-      message: `OK, let's start traning, whenever you feel I understood your intend, please trigger the command /train-teamflo-stop`,
+      message: `OK, let's start traning, whenever you feel I understood your intend, please trigger the command /train-teamflo-stop. \nEx. when I tell you this... respond in this format ...`,
     });
   }
 
@@ -74,7 +95,10 @@ export const orchest = async (body) => {
           { role: USER, content: text },
           { role: ASSISTANT, content: answer },
         ];
-        sendMessage({ channelId: channel, message: answer });
+        sendMessage({
+          channelId: channel,
+          message: ':robot_face: training mode\n\n' + answer,
+        });
       });
     }
 
@@ -114,9 +138,9 @@ const convertUserIdsToNames = async (messages) => {
 
 const readChannelMessages = async ({
   channelId,
-  fromTimeStamp,
+  fromTimeStamp = dateToTimestamp(2024, 1, 1),
   toTimeStamp,
-  limit,
+  limit = 10000,
 }) => {
   try {
     const { messages } = await web.conversations.history({
@@ -143,13 +167,28 @@ const sendMessage = async ({ userId, channelId, message }) => {
   }
 };
 
-// await sendMessage({
-//   userId: 'D075VJE0RH7',
-//   message: 'hi team, hope you are doing fine!',
-// });
+function getChannelId(channelName) {
+  switch (channelName.trim()) {
+    case 'project-teamflow':
+      return 'C06JDEFE62C';
+    case 'teamflo-poc':
+      return 'C075GTE2BMZ';
+    case 'teamflow-internal':
+      return 'C073JJJSWP7';
+    case 'teamflow-poc-channel':
+      return 'C074S83RAF7';
+  }
+}
 
-// const messages = await readChannelMessages({
-//   channelId: 'C073JJJSWP7',
-//   fromTimeStamp: dateToTimestamp(2024, 1, 1),
-//   limit: 10000,
-// });
+function getChannelName(channelId) {
+  switch (channelId.trim()) {
+    case 'C06JDEFE62C':
+      return 'project-teamflow';
+    case 'C075GTE2BMZ':
+      return 'teamflo-poc';
+    case 'C073JJJSWP7':
+      return 'teamflow-internal';
+    case 'C074S83RAF7':
+      return 'teamflow-poc-channel';
+  }
+}
