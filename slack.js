@@ -35,6 +35,13 @@ export const orchest = async (body) => {
 
   console.log({ type, user, text, channel });
 
+  if (/^command/.test(text)) {
+    return sendMessage({
+      userId: user_id || user,
+      message: 'this is a command',
+    });
+  }
+
   if (command == '/train-teamflow-stop') {
     trainingFlag[user_id] = false;
     return sendMessage({
