@@ -29,7 +29,7 @@ const trainingFlag = {
 };
 
 export const orchest = async (body) => {
-  console.log({ body });
+  // console.log({ body });
   const { command, user_id, type, event = {} } = body;
 
   const { user, text, channel } = event;
