@@ -36,7 +36,31 @@ export const orchest = async (body) => {
 
   console.log({ type, user, text, channel });
 
+  const history = trainingChat[user_id || user] || [];
+
   if (/^@command/.test(text)) {
+    //read messages and send answer to questions to specific channel
+    if (/^@command:readChannel@channel:.+?@questions:.+$/.test(text)) {
+      const [channel, questions] = text
+        .split('@')
+        .slice(-2)
+        .map((e) => e.replace(/channel:|questions:/, ''));
+
+      const messages = await readChannelMessages({
+        channelId: getChannelId(channel),
+      });
+      const response = await askChatgpt(
+        'from the previous chat, can you respond: ' + questions,
+        [...history, { role: 'user', content: JSON.stringify(messages) }]
+      );
+
+      return sendMessage({
+        userId: user_id || user,
+        message: response,
+      });
+    }
+
+    //send a greeting to a channel
     if (/^@command:sendGreetingToChannel@to:.+$/.test(text)) {
       //example:
       //@command:sendGreetingToChannel@to:channel
@@ -48,7 +72,8 @@ export const orchest = async (body) => {
         .map((e) => getChannelId(e));
 
       const message = await askChatgpt(
-        'say something funny to my team, the channel is ' + getChannelName(to)
+        'say something funny to my team, the channel is ' + getChannelName(to),
+        history
       );
 
       return sendMessage({
@@ -86,8 +111,6 @@ export const orchest = async (body) => {
     (type == 'app_mention' || type == 'event_callback') &&
     user !== TEAMFLO_ID
   ) {
-    const history = trainingChat[user];
-
     if (trainingFlag[user]) {
       return askChatgpt(text, history).then((answer) => {
         trainingChat[user] = [
@@ -140,7 +163,7 @@ const readChannelMessages = async ({
   channelId,
   fromTimeStamp = dateToTimestamp(2024, 1, 1),
   toTimeStamp,
-  limit = 10000,
+  limit = 100,
 }) => {
   try {
     const { messages } = await web.conversations.history({
@@ -191,4 +214,11 @@ function getChannelName(channelId) {
     case 'C074S83RAF7':
       return 'teamflow-poc-channel';
   }
+}
+function formatChannelMessages(messages) {
+  return messages.map((m) => ({
+    user: m.user,
+    timestamp: m.ts,
+    message: m.text,
+  }));
 }
