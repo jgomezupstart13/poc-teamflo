@@ -200,6 +200,8 @@ function getChannelId(channelName) {
       return 'C073JJJSWP7';
     case 'teamflow-poc-channel':
       return 'C074S83RAF7';
+    case 'u13_bogota':
+      return 'C02NT6R5Q95';
   }
 }
 
@@ -213,6 +215,8 @@ function getChannelName(channelId) {
       return 'teamflow-internal';
     case 'C074S83RAF7':
       return 'teamflow-poc-channel';
+    case 'C02NT6R5Q95':
+      return 'u13_bogota';
   }
 }
 function formatChannelMessages(messages) {
